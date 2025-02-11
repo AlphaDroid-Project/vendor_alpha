@@ -55,6 +55,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     DocumentsUIOverlay \
     NetworkStackOverlay \
+    PermissionControllerOverlay \
     NavigationBarMode2ButtonOverlay \
     WallpaperPickerOverlayAndroid \
     WallpaperPickerOverlaySettings
