@@ -1,4 +1,4 @@
-$(call inherit-product, vendor/alpha/audio/audio.mk)
+$(call inherit-product, vendor/alpha/config/audio.mk)
 $(call inherit-product, vendor/addons/config.mk)
 $(call inherit-product-if-exists, vendor/certification/config.mk)
 
