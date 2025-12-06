@@ -22,6 +22,7 @@ endif
 # 1 - vanilla (default)
 # 2 - microg
 # 3 - gapps
+TARGET_BUILD_PACKAGE ?= 1
 ifeq ($(TARGET_BUILD_PACKAGE),3)
   ALPHA_BUILD_VARIANT := gapps
 else
