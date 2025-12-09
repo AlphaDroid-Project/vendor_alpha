@@ -336,7 +336,7 @@ ifeq ($(TARGET_SUPPORTS_QUICK_TAP),true)
         ColumbusService
 endif
 
-ifneq ($(TARGET_DISABLE_MATLOG),true)
+ifeq ($(TARGET_INCLUDE_MATLOG),true)
     PRODUCT_PACKAGES += \
         MatLog
 endif
