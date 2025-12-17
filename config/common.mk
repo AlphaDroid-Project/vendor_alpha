@@ -180,7 +180,7 @@ else
         ro.setupwizard.mode=OPTIONAL \
         setupwizard.feature.predeferred_enabled=false \
         setupwizard.feature.day_night_mode_enabled=true \
-        setupwizard.theme=glif_v4
+        setupwizard.theme=glif_expressive
 endif
 
 # Blur
