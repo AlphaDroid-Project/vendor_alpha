@@ -223,10 +223,12 @@ PRODUCT_PRODUCT_PROPERTIES += \
 
 # Backup Tool
 ifneq ($(TARGET_EXCLUDE_BACKUPTOOL),true)
+    PRODUCT_PACKAGES += \
+        50-alpha.sh
+
     PRODUCT_COPY_FILES += \
         vendor/alpha/prebuilt/common/bin/backuptool.sh:install/bin/backuptool.sh \
-        vendor/alpha/prebuilt/common/bin/backuptool.functions:install/bin/backuptool.functions \
-        vendor/alpha/prebuilt/common/bin/50-alpha.sh:$(TARGET_COPY_OUT_SYSTEM)/addon.d/50-alpha.sh
+        vendor/alpha/prebuilt/common/bin/backuptool.functions:install/bin/backuptool.functions
 
     PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
         system/addon.d/50-alpha.sh
