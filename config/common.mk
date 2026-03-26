@@ -172,17 +172,11 @@ else
         ro.config.ringtone=Orion.ogg
 endif
 
-# Enable blur
-TARGET_ENABLE_BLUR ?= false
-ifeq ($(TARGET_ENABLE_BLUR),true)
+# Blur
+ifneq ($(TARGET_SUPPORTS_BLUR),false)
     PRODUCT_PRODUCT_PROPERTIES += \
-        ro.custom.blur.enable=true
-else
-    PRODUCT_PRODUCT_PROPERTIES += \
-        ro.custom.blur.enable=false
+        ro.surface_flinger.supports_background_blur=1
 endif
-
-PRODUCT_PRODUCT_PROPERTIES += ro.surface_flinger.supports_background_blur=1
 
 # Media
 PRODUCT_PRODUCT_PROPERTIES += \
