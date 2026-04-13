@@ -297,6 +297,7 @@ PRODUCT_PACKAGES += \
 
 # Apps
 PRODUCT_PACKAGES += \
+    AlphaVisuals \
     Camelot \
     Etar \
     Recorder \
