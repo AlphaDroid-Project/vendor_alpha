@@ -311,6 +311,7 @@ PRODUCT_PACKAGES += \
 # Apps
 PRODUCT_PACKAGES += \
     AlphaVisuals \
+    AxQuickLook \
     Camelot \
     Etar \
     Recorder \
