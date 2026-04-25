@@ -312,6 +312,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     AlphaVisuals \
     AxQuickLook \
+    AxSandbox \
     Camelot \
     Etar \
     Recorder \
