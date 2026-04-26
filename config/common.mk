@@ -96,23 +96,13 @@ PRODUCT_PRODUCT_PROPERTIES += \
     ro.url.legal=http://www.google.com/intl/%s/mobile/android/basic/phone-legal.html \
     ro.url.legal.android_privacy=http://www.google.com/intl/%s/mobile/android/basic/privacy.html \
     ro.error.receiver.system.apps=com.google.android.gms \
-    ro.setupwizard.enterprise_mode=1 \
     ro.atrace.core.services=com.google.android.gms,com.google.android.gms.ui,com.google.android.gms.persistent \
     ro.com.google.ime.theme_id=5 \
     ro.opa.eligible_device=true \
     ro.com.android.wifi-watchlist=GoogleGuest \
-    ro.setupwizard.network_required=false \
-    ro.setupwizard.gservices_delay=-1 \
-    ro.setupwizard.mode=OPTIONAL \
-    setupwizard.feature.predeferred_enabled=false \
     drm.service.enabled=true \
     persist.sys.dun.override=0 \
     persist.sys.disable_rescue=true
-
-# SetupWizard
-PRODUCT_PRODUCT_PROPERTIES += \
-    setupwizard.theme=glif_v4 \
-    setupwizard.feature.day_night_mode_enabled=true
 
 # GAPPS
 ifeq ($(TARGET_BUILD_PACKAGE),3)
@@ -145,17 +135,29 @@ ifeq ($(TARGET_BUILD_PACKAGE),3)
 
     # SetupWizard Props
     PRODUCT_PRODUCT_PROPERTIES += \
+        ro.setupwizard.enterprise_mode=1 \
         ro.setupwizard.esim_cid_ignore=00000001 \
         setupwizard.feature.baseline_setupwizard_enabled=true \
         setupwizard.feature.day_night_mode_enabled=true \
+        setupwizard.feature.default_locale_enhancement_enabled=true \
+        setupwizard.feature.device_info_icon_enabled=true \
         setupwizard.feature.enable_gil= \
+        setupwizard.feature.enable_gil_logging=true \
+        setupwizard.feature.enable_minors_setup_flow=true \
+        setupwizard.feature.enable_parental_notice_activity=true \
+        setupwizard.feature.enable_parental_setup=true \
+        setupwizard.feature.enhanced_setup_design_metrics=true \
+        setupwizard.feature.is_suw_onboarding_contract_enabled=true \
+        setupwizard.feature.joined_up_loading=true \
+        setupwizard.feature.locale_agnostic_enabled=true \
         setupwizard.feature.enable_quick_start_flow=true \
         setupwizard.feature.enable_restore_anytime=true \
         setupwizard.feature.enable_wifi_tracker=true \
         setupwizard.feature.lifecycle_refactoring=true \
         setupwizard.feature.notification_refactoring=true \
         setupwizard.feature.portal_notification=true \
-        setupwizard.feature.provisioning_profile_mode=true
+        setupwizard.feature.provisioning_profile_mode=true \
+        setupwizard.theme=glif_expressive
 
     $(call inherit-product, vendor/pixel/gms/products/gms.mk)
 else
@@ -170,6 +172,15 @@ else
         ro.config.notification_sound=Argon.ogg \
         ro.config.alarm_alert=Hassium.ogg \
         ro.config.ringtone=Orion.ogg
+
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.setupwizard.enterprise_mode=1 \
+        ro.setupwizard.network_required=false \
+        ro.setupwizard.gservices_delay=-1 \
+        ro.setupwizard.mode=OPTIONAL \
+        setupwizard.feature.predeferred_enabled=false \
+        setupwizard.feature.day_night_mode_enabled=true \
+        setupwizard.theme=glif_v4
 endif
 
 # Blur
