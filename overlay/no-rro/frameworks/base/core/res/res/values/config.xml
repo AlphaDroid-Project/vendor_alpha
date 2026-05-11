@@ -34,6 +34,11 @@
     <string name="config_defaultContextualSearchLegacyEnabled">omni.enable_vis</string>
     <string name="config_defaultContextualSearchPackageName" translatable="false">com.google.android.googlequicksearchbox</string>
 
+    <!-- Pixel Launcher scopes CSS availability queries to this package (resource name is a
+         historical misnomer). Mirrors vendor/pixel FrameworkPixellauncher so framework-res still
+         carries the value if that overlay is absent or lower priority. -->
+    <string name="config_defaultLaunchOnPrivateDisplayRouterActivity" translatable="false">com.google.android.googlequicksearchbox</string>
+
     <!-- Name of the font family to use in the default lockscreen clock -->
     <string name="config_clockFontFamily" translatable="false">google-sans-flex-clock</string>
 

@@ -1,112 +1,23 @@
-# Allow vendor/extra to override any property by setting it first
-$(call inherit-product-if-exists, vendor/extra/product.mk)
-$(call inherit-product-if-exists, vendor/lineage/config/crdroid.mk)
-$(call inherit-product-if-exists, vendor/addons/config.mk)
+$(call inherit-product, vendor/alpha/config/audio.mk)
+$(call inherit-product, vendor/addons/config.mk)
 $(call inherit-product-if-exists, vendor/certification/config.mk)
 
 # Allow vendor prebuilt repos to exclude themselves from bp scanning
 -include $(sort $(wildcard vendor/*/*/exclude-bp.mk))
 
-PRODUCT_BRAND ?= crDroidAndroid
 
-ifeq ($(PRODUCT_GMS_CLIENTID_BASE),)
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.com.google.clientidbase=android-google
-else
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.com.google.clientidbase=$(PRODUCT_GMS_CLIENTID_BASE)
-endif
+PRODUCT_BRAND ?= AlphaDroid
 
-ifeq ($(PRODUCT_IS_ATV),true)
-ifeq ($(PRODUCT_ATV_CLIENTID_BASE),)
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.oem.key1=ATV00100020
-else
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.oem.key1=$(PRODUCT_ATV_CLIENTID_BASE)
-endif
-endif
+# Bootanimation
+TARGET_SCREEN_WIDTH ?= 1080
+TARGET_SCREEN_HEIGHT ?= 1920
 
-ifeq ($(TARGET_BUILD_VARIANT),eng)
-# Disable ADB authentication
-PRODUCT_SYSTEM_EXT_PROPERTIES += ro.adb.secure=0
-else
-ifdef WITH_ADB_INSECURE
-# Forcebly disable ADB authentication
-PRODUCT_SYSTEM_EXT_PROPERTIES += ro.adb.secure=0
-else
-# Enable ADB authentication
-PRODUCT_SYSTEM_EXT_PROPERTIES += ro.adb.secure=1
+# Disable vendor restrictions
+PRODUCT_RESTRICT_VENDOR_FILES := false
 
-# Set ro.debuggable=0 for userdebug
-PRODUCT_NOT_DEBUGGABLE_IN_USERDEBUG := true
-endif
-
-# Disable extra StrictMode features on all non-engineering builds
-PRODUCT_PRODUCT_PROPERTIES += persist.sys.strictmode.disable=true
-endif
-
-# Backup Tool
-PRODUCT_COPY_FILES += \
-    vendor/lineage/prebuilt/common/bin/backuptool.sh:install/bin/backuptool.sh \
-    vendor/lineage/prebuilt/common/bin/backuptool.functions:install/bin/backuptool.functions
-
-PRODUCT_PACKAGES += \
-    50-lineage.sh
-
-PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
-    system/addon.d/50-lineage.sh
-
-ifneq ($(strip $(AB_OTA_PARTITIONS) $(AB_OTA_POSTINSTALL_CONFIG)),)
-PRODUCT_COPY_FILES += \
-    vendor/lineage/prebuilt/common/bin/backuptool_ab.sh:$(TARGET_COPY_OUT_SYSTEM)/bin/backuptool_ab.sh \
-    vendor/lineage/prebuilt/common/bin/backuptool_ab.functions:$(TARGET_COPY_OUT_SYSTEM)/bin/backuptool_ab.functions \
-    vendor/lineage/prebuilt/common/bin/backuptool_postinstall.sh:$(TARGET_COPY_OUT_SYSTEM)/bin/backuptool_postinstall.sh
-
-PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
-    system/bin/backuptool_ab.sh \
-    system/bin/backuptool_ab.functions \
-    system/bin/backuptool_postinstall.sh
-
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.ota.allow_downgrade=true
-endif
-
-# Lineage-specific broadcast actions whitelist
-PRODUCT_COPY_FILES += \
-    vendor/lineage/config/permissions/lineage-sysconfig.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/lineage-sysconfig.xml
-
-# Lineage-specific init rc file
-PRODUCT_COPY_FILES += \
-    vendor/lineage/prebuilt/common/etc/init/init.lineage-system_ext.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.lineage-system_ext.rc
-
-# Enable SIP+VoIP on all targets
-PRODUCT_COPY_FILES += \
-    frameworks/native/data/etc/android.software.sip.voip.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/android.software.sip.voip.xml
-
-# Credential storage
-PRODUCT_PACKAGES += \
-    android.software.credentials.prebuilt.xml
-
-# Enable wireless Xbox 360 controller support
-PRODUCT_COPY_FILES += \
-    frameworks/base/data/keyboards/Vendor_045e_Product_028e.kl:$(TARGET_COPY_OUT_PRODUCT)/usr/keylayout/Vendor_045e_Product_0719.kl
-
-# Component overrides
-PRODUCT_PACKAGES += \
-    lineage-component-overrides.xml
-
-# This is Lineage!
-PRODUCT_COPY_FILES += \
-    vendor/lineage/config/permissions/org.lineageos.android.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/org.lineageos.android.xml
-
-# Enforce privapp-permissions whitelist
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.control_privapp_permissions=enforce
-
-ifneq ($(TARGET_DISABLE_LINEAGE_SDK), true)
-# Lineage SDK
-include vendor/lineage/config/lineage_sdk_common.mk
+ifeq ($(TARGET_ENABLE_EPPE),true)
+    # Require all requested packages to exist
+    $(call enforce-product-packages-exist-internal,$(lastword $(_include_stack)),product_manifest.xml rild Calendar android.hidl.memory@1.0-impl.vendor vndk_apex_snapshot_package)
 endif
 
 # Do not include art debug targets
@@ -122,159 +33,443 @@ PRODUCT_MINIMIZE_JAVA_DEBUG_INFO := true
 SYSTEM_OPTIMIZE_JAVA ?= true
 SYSTEMUI_OPTIMIZE_JAVA ?= true
 
-# Disable vendor restrictions
-PRODUCT_RESTRICT_VENDOR_FILES := false
+# SystemUI
+PRODUCT_DEXPREOPT_SPEED_APPS += \
+    Launcher3QuickStep \
+    Settings \
+    SystemUI
 
-ifneq ($(TARGET_DISABLE_EPPE),true)
-# Require all requested packages to exist
-$(call enforce-product-packages-exist-internal,$(lastword $(_include_stack)),product_manifest.xml rild Calendar android.hidl.memory@1.0-impl.vendor vndk_apex_snapshot_package)
+
+##############################
+##        PROPERTIES        ##
+##############################
+
+
+ifeq ($(TARGET_BUILD_VARIANT),eng)
+    # Disable ADB authentication
+    PRODUCT_SYSTEM_EXT_PROPERTIES += ro.adb.secure=0
+else
+    WITH_ADB_INSECURE ?= false
+    ifeq ($(WITH_ADB_INSECURE),true)
+        # Forcebly disable ADB authentication
+        PRODUCT_SYSTEM_EXT_PROPERTIES += ro.adb.secure=0
+    else
+        # Enable ADB authentication
+        PRODUCT_SYSTEM_EXT_PROPERTIES += ro.adb.secure=1
+
+        # Set ro.debuggable=0 for userdebug
+        PRODUCT_NOT_DEBUGGABLE_IN_USERDEBUG := true
+    endif
+
+    # Disable extra StrictMode features on all non-engineering builds
+    PRODUCT_PRODUCT_PROPERTIES += persist.sys.strictmode.disable=true
 endif
 
-# Bootanimation
-TARGET_SCREEN_WIDTH ?= 1080
-TARGET_SCREEN_HEIGHT ?= 1920
+# Storage manager
+PRODUCT_PRODUCT_PROPERTIES += \
+    ro.storage_manager.enabled=true
+
+# Enable Material Design 3 Expressive
+PRODUCT_PRODUCT_PROPERTIES += \
+    is_expressive_design_enabled=true
+
+# Disable touch video heatmap to reduce latency, motion jitter, and CPU usage
+# on supported devices with Deep Press input classifier HALs and models
+PRODUCT_PRODUCT_PROPERTIES += \
+    ro.input.video_enabled=false
+
+# Disable default frame rate limit for games
+PRODUCT_PRODUCT_PROPERTIES += \
+    debug.graphics.game_default_frame_rate.disabled=true
+
+ifeq ($(PRODUCT_GMS_CLIENTID_BASE),)
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.com.google.clientidbase=android-google
+else
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.com.google.clientidbase=$(PRODUCT_GMS_CLIENTID_BASE)
+endif
+
+# Additional props
+PRODUCT_PRODUCT_PROPERTIES += \
+    dalvik.vm.debug.alloc=0 \
+    ro.url.legal=http://www.google.com/intl/%s/mobile/android/basic/phone-legal.html \
+    ro.url.legal.android_privacy=http://www.google.com/intl/%s/mobile/android/basic/privacy.html \
+    ro.error.receiver.system.apps=com.google.android.gms \
+    ro.atrace.core.services=com.google.android.gms,com.google.android.gms.ui,com.google.android.gms.persistent \
+    ro.com.google.ime.theme_id=5 \
+    ro.opa.eligible_device=true \
+    ro.com.android.wifi-watchlist=GoogleGuest \
+    drm.service.enabled=true \
+    persist.sys.dun.override=0 \
+    persist.sys.disable_rescue=true
+
+# GAPPS
+ifeq ($(TARGET_BUILD_PACKAGE),3)
+    # Default notification/alarm sounds
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.config.notification_sound=Popcorn.ogg \
+        ro.config.alarm_alert=Bright_morning.ogg
+
+    # Default ringtone
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.config.ringtone=The_big_adventure.ogg
+
+    # Gboard Props
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.com.google.ime.bs_theme=true \
+        ro.com.google.ime.system_lm_dir=/product/usr/share/ime/google/d3_lms
+
+    # Conditionally include pixel launcher and theme picker squad
+    ifeq ($(TARGET_INCLUDE_PIXEL_LAUNCHER),true)
+        PRODUCT_PRODUCT_PROPERTIES += \
+            persist.sys.nexuslauncher=1
+
+        $(call inherit-product, vendor/pixel/launcher/products/launcher.mk)
+        $(call inherit-product, vendor/pixel/themepicker/products/themepicker.mk)
+        $(call inherit-product, vendor/pixel/sounds/products/sounds.mk)
+    else
+        PRODUCT_PRODUCT_PROPERTIES += \
+            persist.sys.nexuslauncher=0
+    endif
+
+    # SetupWizard Props
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.setupwizard.enterprise_mode=1 \
+        ro.setupwizard.esim_cid_ignore=00000001 \
+        setupwizard.feature.baseline_setupwizard_enabled=true \
+        setupwizard.feature.day_night_mode_enabled=true \
+        setupwizard.feature.default_locale_enhancement_enabled=true \
+        setupwizard.feature.device_info_icon_enabled=true \
+        setupwizard.feature.enable_gil= \
+        setupwizard.feature.enable_gil_logging=true \
+        setupwizard.feature.enable_minors_setup_flow=true \
+        setupwizard.feature.enable_parental_notice_activity=true \
+        setupwizard.feature.enable_parental_setup=true \
+        setupwizard.feature.enhanced_setup_design_metrics=true \
+        setupwizard.feature.is_suw_onboarding_contract_enabled=true \
+        setupwizard.feature.joined_up_loading=true \
+        setupwizard.feature.locale_agnostic_enabled=true \
+        setupwizard.feature.enable_quick_start_flow=true \
+        setupwizard.feature.enable_restore_anytime=true \
+        setupwizard.feature.enable_wifi_tracker=true \
+        setupwizard.feature.lifecycle_refactoring=true \
+        setupwizard.feature.notification_refactoring=true \
+        setupwizard.feature.portal_notification=true \
+        setupwizard.feature.provisioning_profile_mode=true \
+        setupwizard.theme=glif_expressive
+
+    $(call inherit-product, vendor/pixel/gms/products/gms.mk)
+else
+    ifeq ($(TARGET_BUILD_PACKAGE),2)
+        $(call inherit-product, vendor/microg/product.mk)
+    endif
+
+    PRODUCT_PRODUCT_PROPERTIES += \
+        persist.sys.nexuslauncher=0
+
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.config.notification_sound=Argon.ogg \
+        ro.config.alarm_alert=Hassium.ogg \
+        ro.config.ringtone=Orion.ogg
+
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.setupwizard.enterprise_mode=1 \
+        ro.setupwizard.network_required=false \
+        ro.setupwizard.gservices_delay=-1 \
+        ro.setupwizard.mode=OPTIONAL \
+        setupwizard.feature.predeferred_enabled=false \
+        setupwizard.feature.day_night_mode_enabled=true \
+        setupwizard.theme=glif_expressive
+endif
+
+# Blur
+ifneq ($(TARGET_SUPPORTS_BLUR),false)
+    PRODUCT_PRODUCT_PROPERTIES += \
+        ro.surface_flinger.supports_background_blur=1
+endif
+
+# Media
+PRODUCT_PRODUCT_PROPERTIES += \
+    media.recorder.show_manufacturer_and_model=true
+
+# Disable async MTE on a few processes
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
+    persist.arm64.memtag.app.com.android.se=off \
+    persist.arm64.memtag.app.com.google.android.bluetooth=off \
+    persist.arm64.memtag.app.com.android.nfc=off \
+    persist.arm64.memtag.process.system_server=off
+
+# Enable dex2oat64 to do dexopt
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
+    dalvik.vm.dex2oat64.enabled=true
+
+PRODUCT_PRODUCT_PROPERTIES += \
+    dalvik.vm.systemuicompilerfilter=speed
+
+ifeq ($(TARGET_BUILD_VARIANT),userdebug)
+    PRODUCT_PRODUCT_PROPERTIES += \
+        debug.sf.enable_transaction_tracing=false
+endif
+
+# Log privapp-permissions whitelist
+PRODUCT_PRODUCT_PROPERTIES += \
+    ro.control_privapp_permissions=log
+
+
+#################################
+##        INIT SCRIPTS         ##
+#################################
+
+# Backup Tool
+ifneq ($(TARGET_EXCLUDE_BACKUPTOOL),true)
+    PRODUCT_COPY_FILES += \
+        vendor/alpha/prebuilt/common/bin/backuptool.sh:install/bin/backuptool.sh \
+        vendor/alpha/prebuilt/common/bin/backuptool.functions:install/bin/backuptool.functions
+
+    PRODUCT_PACKAGES += \
+        50-alpha.sh
+
+    PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
+        system/addon.d/50-alpha.sh
+
+    ifneq ($(strip $(AB_OTA_PARTITIONS) $(AB_OTA_POSTINSTALL_CONFIG)),)
+        PRODUCT_COPY_FILES += \
+            vendor/alpha/prebuilt/common/bin/backuptool_ab.sh:$(TARGET_COPY_OUT_SYSTEM)/bin/backuptool_ab.sh \
+            vendor/alpha/prebuilt/common/bin/backuptool_ab.functions:$(TARGET_COPY_OUT_SYSTEM)/bin/backuptool_ab.functions \
+            vendor/alpha/prebuilt/common/bin/backuptool_postinstall.sh:$(TARGET_COPY_OUT_SYSTEM)/bin/backuptool_postinstall.sh
+
+        PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
+            system/bin/backuptool_ab.sh \
+            system/bin/backuptool_ab.functions \
+            system/bin/backuptool_postinstall.sh
+
+        PRODUCT_PRODUCT_PROPERTIES += \
+            ro.ota.allow_downgrade=true
+    endif
+endif
+
+# Init
+PRODUCT_COPY_FILES += \
+    vendor/alpha/prebuilt/common/etc/init/init.alpha-system_ext.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.alpha-system_ext.rc \
+    vendor/alpha/prebuilt/common/etc/init/init.alpha-updater.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.alpha-updater.rc \
+    vendor/alpha/prebuilt/common/etc/init/init.openssh.rc:$(TARGET_COPY_OUT_PRODUCT)/etc/init/init.openssh.rc \
+
+# FRP
+PRODUCT_COPY_FILES += \
+    vendor/alpha/prebuilt/common/bin/wipe-frp.sh:$(TARGET_COPY_OUT_RECOVERY)/root/system/bin/wipe-frp
+
+
+#############################
+##        CONFIGS          ##
+#############################
+
+# Cloned app exemption
+PRODUCT_COPY_FILES += \
+    vendor/alpha/prebuilt/common/etc/sysconfig/preinstalled-packages-platform-alpha-product.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/preinstalled-packages-platform-alpha-product.xml
+
+# Enable SIP+VoIP on all targets
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.software.sip.voip.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/android.software.sip.voip.xml
+
+# Credential storage
 PRODUCT_PACKAGES += \
-    bootanimation.zip \
-    bootanimation-dark.zip
+    android.software.credentials.prebuilt.xml
+
+# Component overrides
+PRODUCT_PACKAGES += \
+    alpha-component-overrides.xml
+
+# Enable wireless Xbox 360 controller support
+PRODUCT_COPY_FILES += \
+    frameworks/base/data/keyboards/Vendor_045e_Product_028e.kl:$(TARGET_COPY_OUT_PRODUCT)/usr/keylayout/Vendor_045e_Product_0719.kl
+
+
+####################################
+##        LINEAGE FEATURES        ##
+####################################
+
+# Broadcast actions whitelist
+PRODUCT_COPY_FILES += \
+    vendor/alpha/config/permissions/lineage-sysconfig.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/lineage-sysconfig.xml
+
+PRODUCT_COPY_FILES += \
+    vendor/alpha/config/permissions/org.lineageos.globalactions.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/org.lineageos.globalactions.xml \
+    vendor/alpha/config/permissions/org.lineageos.hardware.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/org.lineageos.hardware.xml \
+    vendor/alpha/config/permissions/org.lineageos.health.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/org.lineageos.health.xml \
+    vendor/alpha/config/permissions/org.lineageos.livedisplay.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/org.lineageos.livedisplay.xml \
 
 # Lineage interfaces
 PRODUCT_PACKAGES += \
     framework_compatibility_matrix.lineage.xml
 
-# Lineage packages
-ifeq ($(PRODUCT_IS_ATV),)
+
+############################
+##        PACKAGES        ##
+############################
+
+# Apps
 PRODUCT_PACKAGES += \
+    AlphaVisuals \
+    AxQuickLook \
+    AxSandbox \
+    Camelot \
+    Etar \
+    Recorder \
+    Seedvault \
+    Twelve \
+    AvatarPicker \
+    Backgrounds \
+    Glimpse \
+    LatinIME \
+    Launcher3QuickStep \
+    QuickAccessWallet \
+    ThemePicker \
+    ThemesStub \
     ExactCalculator \
-    Jelly
+    Jelly \
+    LineageSetupWizard \
+    Updater \
+    BatteryStatsViewer \
+    GameSpace \
+    LMOFreeform \
+    LMOFreeformSidebar \
+    OmniJaws \
+    OmniStyle
+
+ifneq ($(PRODUCT_NO_CAMERA),true)
+    PRODUCT_PACKAGES += \
+        Aperture
 endif
 
-ifeq ($(PRODUCT_IS_AUTOMOTIVE),)
-PRODUCT_PACKAGES += \
-    LineageParts \
-    LineageSetupWizard
+ifneq ($(TARGET_EXCLUDES_AUDIOFX),true)
+    PRODUCT_PACKAGES += \
+        AudioFX
 endif
 
-PRODUCT_PACKAGES += \
-    LineageSettingsProvider \
-    Updater
+# ColumbusService
+ifeq ($(TARGET_SUPPORTS_QUICK_TAP),true)
+    PRODUCT_PACKAGES += \
+        ColumbusService
+endif
 
-PRODUCT_COPY_FILES += \
-    vendor/lineage/prebuilt/common/etc/init/init.lineage-updater.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.lineage-updater.rc
+ifeq ($(TARGET_INCLUDE_MATLOG),true)
+    PRODUCT_PACKAGES += \
+        MatLog
+endif
+
+# Face Unlock
+ifeq ($(TARGET_FACE_UNLOCK_SUPPORTED),true)
+    PRODUCT_PACKAGES += \
+        FaceUnlock
+
+    PRODUCT_SYSTEM_EXT_PROPERTIES += \
+        ro.face.sense_service=true
+
+    PRODUCT_COPY_FILES += \
+        frameworks/native/data/etc/android.hardware.biometrics.face.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/android.hardware.biometrics.face.xml
+endif
+
+# DeviceAsWebcam
+ifeq ($(TARGET_BUILD_DEVICE_AS_WEBCAM), true)
+    PRODUCT_PACKAGES += \
+        DeviceAsWebcam
+
+    PRODUCT_VENDOR_PROPERTIES += \
+        ro.usb.uvc.enabled=true
+endif
+
+# Charger
+PRODUCT_PACKAGES += \
+    charger_res_images
+
+ifneq ($(WITH_ALPHA_CHARGER),false)
+    PRODUCT_PACKAGES += \
+        alpha_charger_animation \
+        alpha_charger_animation_vendor
+endif
+
+# su + adb_root
+ifneq ($(TARGET_BUILD_VARIANT),user)
+    ifeq ($(WITH_SU),true)
+        PRODUCT_PACKAGES += \
+            adb_root \
+            su
+
+        PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
+            system/xbin/su
+    endif
+endif
 
 # Config
 PRODUCT_PACKAGES += \
     SimpleDeviceConfig \
     SimpleSettingsConfig
 
-# Disable default frame rate limit for games
-PRODUCT_PRODUCT_PROPERTIES += \
-    debug.graphics.game_default_frame_rate.disabled=true
-
-# Extra tools in Lineage
+# Tools
 PRODUCT_PACKAGES += \
     bash \
     curl \
+    fsck.ntfs \
     getcap \
     htop \
+    mkfs.ntfs \
+    mount.ntfs \
     nano \
+    nano_recovery \
+    rsync \
+    scp \
     setcap \
-    vim
+    sftp \
+    ssh \
+    ssh-keygen \
+    sshd \
+    sshd_config \
+    start-ssh \
+    unrar \
+    vim \
+    zstd
 
+# TextClassifier
 PRODUCT_PACKAGES += \
-    nano_recovery
+    libtextclassifier_annotator_en_model \
+    libtextclassifier_annotator_universal_model \
+    libtextclassifier_actions_suggestions_universal_model \
+    libtextclassifier_lang_id_model
 
 PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
     system/bin/curl \
     system/bin/getcap \
     system/bin/setcap \
-    system/%/libzstd.so
-
-# Filesystems tools
-PRODUCT_PACKAGES += \
-    fsck.ntfs \
-    mkfs.ntfs \
-    mount.ntfs
-
-PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
     system/bin/fsck.ntfs \
     system/bin/mkfs.ntfs \
     system/bin/mount.ntfs \
     system/%/libfuse-lite.so \
-    system/%/libntfs-3g.so
-
-# FRP
-PRODUCT_COPY_FILES += \
-    vendor/lineage/prebuilt/common/bin/wipe-frp.sh:$(TARGET_COPY_OUT_RECOVERY)/root/system/bin/wipe-frp
-
-# Openssh
-PRODUCT_PACKAGES += \
-    scp \
-    sftp \
-    ssh \
-    sshd \
-    sshd_config \
-    ssh-keygen \
-    start-ssh
-
-PRODUCT_COPY_FILES += \
-    vendor/lineage/prebuilt/common/etc/init/init.openssh.rc:$(TARGET_COPY_OUT_PRODUCT)/etc/init/init.openssh.rc
-
-# rsync
-PRODUCT_PACKAGES += \
-    rsync
-
-# Storage manager
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.storage_manager.enabled=true
+    system/%/libntfs-3g.so \
+    system/%/libzstd.so \
+    system/etc/textclassifier/actions_suggestions.universal.model \
+    system/etc/textclassifier/lang_id.model \
+    system/etc/textclassifier/textclassifier.en.model \
+    system/etc/textclassifier/textclassifier.universal.model
 
 # These packages are excluded from user builds
 PRODUCT_PACKAGES_DEBUG += \
     procmem
 
 ifneq ($(TARGET_BUILD_VARIANT),user)
-PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
-    system/bin/procmem
+    PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
+        system/bin/procmem
 endif
 
-ifneq ($(TARGET_BUILD_VARIANT),user)
-ifeq ($(WITH_SU),true)
-# Root
-PRODUCT_PACKAGES += \
-    adb_root
 
-PRODUCT_PACKAGES += \
-    su
+############################
+##        OVERLAYS        ##
+############################
 
-PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
-    system/xbin/su
-endif
-endif
-
-# SystemUI
-PRODUCT_DEXPREOPT_SPEED_APPS += \
-    CarSystemUI \
-    SystemUI
-
-PRODUCT_PRODUCT_PROPERTIES += \
-    dalvik.vm.systemuicompilerfilter=speed
-
-ifeq ($(TARGET_BUILD_VARIANT),userdebug)
-PRODUCT_PRODUCT_PROPERTIES += \
-    debug.sf.enable_transaction_tracing=false
-endif
-
-# Audio files
-$(call inherit-product, vendor/lineage/audio/audio.mk)
-
-# SetupWizard
-PRODUCT_PRODUCT_PROPERTIES += \
-    setupwizard.theme=glif_expressive \
-    setupwizard.feature.day_night_mode_enabled=true
-
-PRODUCT_ENFORCE_RRO_EXCLUDED_OVERLAYS += vendor/lineage/overlay/no-rro
+PRODUCT_ENFORCE_RRO_EXCLUDED_OVERLAYS += vendor/alpha/overlay/no-rro
 PRODUCT_PACKAGE_OVERLAYS += \
-    vendor/lineage/overlay/common \
-    vendor/lineage/overlay/no-rro
+    vendor/alpha/overlay/common \
+    vendor/alpha/overlay/no-rro
 
 PRODUCT_PACKAGES += \
     DocumentsUIOverlay \
@@ -289,15 +484,18 @@ CUSTOM_LOCALES += \
     fur_IT \
     nn_NO
 
+# Include Lineage LatinIME dictionaries
+PRODUCT_PACKAGE_OVERLAYS += vendor/alpha/overlay/dictionaries
+PRODUCT_ENFORCE_RRO_EXCLUDED_OVERLAYS += vendor/alpha/overlay/dictionaries
+
 PRODUCT_ENFORCE_RRO_EXCLUDED_OVERLAYS += vendor/crowdin/overlay
 PRODUCT_PACKAGE_OVERLAYS += vendor/crowdin/overlay
 
 PRODUCT_EXTRA_RECOVERY_KEYS += \
-    vendor/lineage/build/target/product/security/lineage
+    vendor/alpha/build/target/product/security/alpha
 
-include vendor/lineage/config/version.mk
+include vendor/alpha/config/version.mk
 
--include vendor/lineage-priv/keys/keys.mk
+-include vendor/alpha-priv/keys/keys.mk
 
 -include $(WORKSPACE)/build_env/image-auto-bits.mk
--include vendor/lineage/config/partner_gms.mk
