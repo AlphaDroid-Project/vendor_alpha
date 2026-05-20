@@ -1,5 +1,6 @@
 $(call inherit-product, vendor/alpha/config/audio.mk)
 $(call inherit-product, vendor/addons/config.mk)
+$(call inherit-product-if-exists, axion-sdk/ax_tflite/common.mk)
 $(call inherit-product-if-exists, vendor/certification/config.mk)
 
 # Allow vendor prebuilt repos to exclude themselves from bp scanning
@@ -310,32 +311,34 @@ PRODUCT_PACKAGES += \
 
 # Apps
 PRODUCT_PACKAGES += \
+    AlphaThemePicker \
     AlphaVisuals \
+    AvatarPicker \
     AxQuickLook \
     AxSandbox \
+    AxWallpaperEffects \
+    AxionWidgets \
+    Backgrounds \
+    BatteryStatsViewer \
     Camelot \
     Etar \
-    Recorder \
-    Seedvault \
-    Twelve \
-    AvatarPicker \
-    Backgrounds \
+    ExactCalculator \
+    GameSpace \
     Glimpse \
+    Jelly \
     LatinIME \
     Launcher3QuickStep \
-    QuickAccessWallet \
-    ThemePicker \
-    ThemesStub \
-    ExactCalculator \
-    Jelly \
     LineageSetupWizard \
-    Updater \
-    BatteryStatsViewer \
-    GameSpace \
     LMOFreeform \
     LMOFreeformSidebar \
     OmniJaws \
-    OmniStyle
+    OmniStyle \
+    QuickAccessWallet \
+    Recorder \
+    Seedvault \
+    ThemesStub \
+    Twelve \
+    Updater
 
 ifneq ($(PRODUCT_NO_CAMERA),true)
     PRODUCT_PACKAGES += \
