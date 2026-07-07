@@ -1573,7 +1573,6 @@
     <icon drawable="@drawable/camera" package="com.motorola.odm.camera3" />
     <icon drawable="@drawable/camera" package="com.ngcam.camera" />
     <icon drawable="@drawable/camera" package="com.ontim.camera2" />
-    <icon drawable="@drawable/camera" package="com.oplus.camera" />
     <icon drawable="@drawable/camera" package="com.oppo.camera" />
     <icon drawable="@drawable/camera" package="com.samsung.agc.gcam84" />
     <icon drawable="@drawable/camera" package="com.samsung.agc.gcam88" />
@@ -6581,7 +6580,6 @@
     <icon drawable="@drawable/pixelfed" package="com.pixelfed" />
     <icon drawable="@drawable/pixelful_icons" package="com.ciaostudio.pixeliconpack" />
     <icon drawable="@drawable/pixelify_gphotos" package="balti.xposed.pixelifygooglephotos" />
-    <icon drawable="@drawable/pixelify_gphotos" package="com.oneplus.gallery" />
     <icon drawable="@drawable/pixelix" package="com.daniebeler.pfpixelix" />
     <icon drawable="@drawable/pixellab" package="com.imaginstudio.imagetools.pixellab" />
     <icon drawable="@drawable/pixels" package="com.tribalfs.pixels" />
