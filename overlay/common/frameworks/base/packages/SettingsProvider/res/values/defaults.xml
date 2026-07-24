@@ -39,4 +39,10 @@
 
     <!-- Default for Settings.System.VIBRATE_WHEN_RINGING -->
     <bool name="def_vibrate_when_ringing">true</bool>
+
+    <!-- Dev Options animation scales (first-boot SettingsProvider seed).
+         Window + transition 0.5× for snappier system chrome; animator left at
+         AOSP 1.0 (no def_animator_duration_scale resource / not seeded here). -->
+    <fraction name="def_window_animation_scale">50%</fraction>
+    <fraction name="def_window_transition_scale">50%</fraction>
 </resources>
