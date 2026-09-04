@@ -133,8 +133,9 @@
         <item>privacy/location_indicators_small_enabled=true</item>
         <item>privacy/privacy_dashboard_7_day_toggle=true</item>
 
-        <!-- Enable shared connectivity -->
-        <item>wifi/shared_connectivity_enabled=true</item>
+        <!-- Instant Hotspot is Pixel-only. GMS has no Chimera impl here
+             and used to kill SystemUI on bind. -->
+        <item>wifi/shared_connectivity_enabled=false</item>
 
         <!-- Don't pin camera app to save memory -->
         <item>runtime_native_boot/pin_camera=false</item>
