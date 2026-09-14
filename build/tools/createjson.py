@@ -63,6 +63,10 @@ def main():
     buildvariant = extract_prop("ro.alpha.build.variant", buildprop)
     maintainer = extract_prop("ro.alpha.maintainer", buildprop)
     timestamp_str = extract_prop("ro.system.build.date.utc", buildprop)
+    sdk_str = extract_prop("ro.system.build.version.sdk", buildprop) or extract_prop(
+        "ro.build.version.sdk", buildprop
+    )
+    os_patch_level = extract_prop("ro.build.version.security_patch", buildprop)
     
     timestamp = 0
     if timestamp_str:
@@ -118,6 +122,8 @@ def main():
         "version": version,
         "buildtype": buildtype,
         "buildvariant": buildvariant,
+        "os_sdk_level": int(sdk_str) if sdk_str.isdigit() else None,
+        "os_patch_level": os_patch_level or None,
         "forum": get_ota_field("forum"),
         "gapps": get_ota_field("gapps"),
         "firmware": get_ota_field("firmware"),
